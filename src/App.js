@@ -1,53 +1,39 @@
-import Create from "./components/Create";
-import List from "./components/List";
-import {collection,query,onSnapshot,doc,updateDoc, deleteDoc} from 'firebase/firestore';
-import { useEffect, useState } from "react";
-import { db } from "./firebase";
+import { collection, doc, getDoc, getDocs, query } from 'firebase/firestore'
+import React, { useEffect, useState } from 'react'
+import Form from './components/Form'
+import Header from './components/Header'
+import Table from './components/Table'
+import { db } from './firebase'
 
-function App() {
-  const [todos, setTodos] = useState([]);
+const App = () => {
+  const [data, setData] = useState([])
+  
+  const getAlldata = async () => {
+    const contactRecords = await getDocs(collection(db, "contacts"));
 
-  const toggleComplete = async (todo) => {
-    await updateDoc(doc(db, "todos",todo.id),{
-      completed : !todo.completed
+    const newArray = []
+    contactRecords.forEach((doc,index) => {
+      newArray.push({...doc.data(),id:doc.id})
     })
-  }
-  const handleEdit = async (todo,title) => {
-    await updateDoc(doc(db, "todos", todo.id), {title: title})
-  }
-  const handleDelete = async (id) => {
-    await deleteDoc(doc(db, "todos",id));
+    setData(newArray)
   }
   useEffect(() => {
-    const q  = query(collection(db,"todos"));
-    const unsub = onSnapshot(q, (querySnapshot) => {
-        let todoArray = [];
-        querySnapshot.forEach((doc) => {
-          todoArray.push({...doc.data(), id: doc.id});
-        })
-        setTodos(todoArray)
-      })
-      return () => unsub()
-   },[])
+      getAlldata();
+  },[])
 
   return (
-  <div className="flex justify-center">  
-      <div className="w-1/2 bg-slate-200 h-auto">
-          <Create/>
-          {
-            todos.map((todo,index) => (
-              <List 
-              key={index} 
-              todo={todo}
-              toggleComplete={(todo) => toggleComplete(todo)}
-              handleDelete={(id) => handleDelete(id)}
-              handleEdit={(todo,title) => handleEdit(todo,title)}
-              />
-            ))
-          }
+    <div className=''>
+      <Header/>
+      <div className='flex px-16 mt-3'>
+        <div className='w-1/3'>
+              <Form/>
+        </div>
+        <div className='w-2/3'>
+          <Table data={data}/>
+        </div>
       </div>
-  </div>
-  );
+    </div>
+  )
 }
 
-export default App;
+export default App
