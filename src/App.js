@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, onSnapshot, query } from 'firebase/firestore'
 import React, { useEffect, useState } from 'react'
 import Form from './components/Form'
 import Header from './components/Header'
@@ -6,19 +6,20 @@ import Table from './components/Table'
 import { db } from './firebase'
 
 const App = () => {
-  const [data, setData] = useState([])
+  let [dataRecords, setDataRecords] = useState([])
   
-  const getAlldata = async () => {
-    const contactRecords = await getDocs(collection(db, "contacts"));
-
-    const newArray = []
-    contactRecords.forEach((doc,index) => {
-      newArray.push({...doc.data(),id:doc.id})
-    })
-    setData(newArray)
-  }
   useEffect(() => {
-      getAlldata();
+    const contactRecords =  query(collection(db, "contacts"));
+
+    const unsub = onSnapshot(contactRecords,(queryDoc) => {
+        let newArray = [];
+        queryDoc.forEach((doc) => {
+          newArray.push({...doc.data(),id:doc.id})
+        })
+        setDataRecords(newArray)
+
+    })
+    return () => unsub()
   },[])
 
   return (
@@ -29,7 +30,7 @@ const App = () => {
               <Form/>
         </div>
         <div className='w-2/3'>
-          <Table data={data}/>
+          <Table data={dataRecords}/>
         </div>
       </div>
     </div>
