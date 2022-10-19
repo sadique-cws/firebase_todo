@@ -6,20 +6,19 @@ import Table from './components/Table'
 import { db } from './firebase'
 
 const App = () => {
-  let [dataRecords, setDataRecords] = useState([])
+   const [dataRecords, setDataRecords] = useState([])
   
   useEffect(() => {
-    const contactRecords =  query(collection(db, "contacts"));
-
-    const unsub = onSnapshot(contactRecords,(queryDoc) => {
-        let newArray = [];
-        queryDoc.forEach((doc) => {
-          newArray.push({...doc.data(),id:doc.id})
+    const q  = query(collection(db,"contacts"));
+    const unsub = onSnapshot(q, (querySnapshot) => {
+        let todoArray = [];
+        querySnapshot.forEach((doc) => {
+          todoArray.push({...doc.data(), id: doc.id});
         })
-        setDataRecords(newArray)
-
-    })
-    return () => unsub()
+        setDataRecords(todoArray)
+        console.log(dataRecords)
+      })
+      return () => unsub()
   },[])
 
   return (
